@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Basit API Projesi</title>
+  </head>
+  <body>
+    <h1>Kitap Listesi</h1>
+
+    <!-- Kitap Listesi Burada Görünecek -->
+    <ul id="book-list"></ul>
+
+    <!-- Yeni Kitap Ekleme Formu -->
+    <h2>Yeni Kitap Ekle</h2>
+    <form id="add-book-form">
+      <label for="title">Kitap Başlığı:</label><br />
+      <input type="text" id="title" name="title" required /><br /><br />
+      <label for="author">Yazar:</label><br />
+      <input type="text" id="author" name="author" required /><br /><br />
+      <button type="submit">Kitap Ekle</button>
+    </form>
+    <p id="message" style="color: green; font-weight: bold"></p>
+
+    <script>
+      // Kitapları API'den çek ve listele
+      async function fetchBooks() {
+        try {
+          const response = await fetch("/books");
+          const books = await response.json();
+
+          // Kitap listesini güncelle
+          const bookList = document.getElementById("book-list");
+          books.forEach((book) => {
+            const li = document.createElement("li");
+            li.textContent = `${book.title} - ${book.author}`;
+            bookList.appendChild(li);
+          });
+        } catch (error) {
+          console.error("Kitapları çekerken bir hata oluştu:", error);
+        }
+      }
+
+      // Sayfa yüklendiğinde kitapları getir
+      fetchBooks();
+
+      // Kitap ekleme formunun submit eventini işle
+      document
+        .getElementById("add-book-form")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault(); // Sayfanın yeniden yüklenmesini engelle
+
+          const title = document.getElementById("title").value;
+          const author = document.getElementById("author").value;
+
+          try {
+            const response = await fetch("/books", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ title, author }),
+            });
+
+            if (response.ok) {
+              // Başarılı mesajı göster
+              document.getElementById("message").textContent =
+                "Kitap başarıyla eklendi!";
+
+              // Listeyi güncelle
+              document.getElementById("book-list").innerHTML = ""; // Önceki listeyi temizle
+              fetchBooks(); // Listeyi yeniden yükle
+
+              // Formu temizle
+              document.getElementById("add-book-form").reset();
+            } else {
+              document.getElementById("message").textContent =
+                "Bir hata oluştu. Kitap eklenemedi.";
+            }
+          } catch (error) {
+            console.error("Kitap eklenirken bir hata oluştu:", error);
+            document.getElementById("message").textContent = "Bir hata oluştu.";
+          }
+        });
+    </script>
+  </body>
+</html>
